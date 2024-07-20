@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  frontend-yarn:
+    image: node:20-alpine
+    working_dir: /app
+    entrypoint: yarn
+    volumes:
+      - './frontend:/app'
+
+  backend-yarn:
+    image: node:20-alpine
+    working_dir: /app
+    entrypoint: yarn
+    volumes:
+      - './backend:/app'
+
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: ./docker_files/frontend/Dockerfile.dev
+    container_name: frontend-dev
+    ports:
+      - '5173:5173'
+    env_file:
+      - ./env_files/frontend/.env.development
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - /app/node_modules
+    depends_on:
+      - backend-dev
+
+  backend-dev:
+    build:
+      context: .
+      dockerfile: ./docker_files/backend/Dockerfile.dev
+    container_name: backend-dev
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./env_files/backend/.env.development
+    volumes:
+      - ./backend/src:/app/src:ro
+      - /app/node_modules
+
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: ./docker_files/frontend/Dockerfile.prod
+    container_name: frontend-prod
+    ports:
+      - '80:80'
+    env_file:
+      - ./env_files/frontend/.env.production
+    depends_on:
+      - backend-prod
+
+  backend-prod:
+    build:
+      context: .
+      dockerfile: ./docker_files/backend/Dockerfile.prod
+    container_name: backend-prod
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./env_files/backend/.env.production
